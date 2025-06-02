@@ -1,14 +1,30 @@
 import { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Alert, ScrollView } from 'react-native';
-import { LogOut, Camera, User as UserIcon, Edit } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ActivityIndicator, Alert, ScrollView, Switch } from 'react-native';
+import { LogOut, Camera, User as UserIcon, CreditCard as Edit, Moon, Palette } from 'lucide-react-native';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme, ThemeType, AccentColor } from '@/context/ThemeContext';
 import * as ImagePicker from 'expo-image-picker';
 import { apiClient } from '@/services/apiClient';
 
 export default function ProfileScreen() {
   const { user, signOut, updateUserProfile } = useAuth();
+  const { theme, setTheme, accentColor, setAccentColor, isDark, colors } = useTheme();
   const [loading, setLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  const themeOptions: { label: string; value: ThemeType }[] = [
+    { label: 'Light', value: 'light' },
+    { label: 'Dark', value: 'dark' },
+    { label: 'System', value: 'system' },
+  ];
+
+  const accentColors: { label: string; value: AccentColor; gradient: string[] }[] = [
+    { label: 'Blue', value: 'blue', gradient: colors.accent.blue },
+    { label: 'Purple', value: 'purple', gradient: colors.accent.purple },
+    { label: 'Green', value: 'green', gradient: colors.accent.green },
+    { label: 'Pink', value: 'pink', gradient: colors.accent.pink },
+    { label: 'Orange', value: 'orange', gradient: colors.accent.orange },
+  ];
 
   const handleSignOut = () => {
     Alert.alert(
@@ -44,7 +60,6 @@ export default function ProfileScreen() {
     try {
       setUploadingImage(true);
       
-      // Create a form data object to send the image
       const formData = new FormData();
       formData.append('avatar', {
         uri,
@@ -52,14 +67,12 @@ export default function ProfileScreen() {
         type: 'image/jpeg'
       } as any);
       
-      // Send the image to the server
       const response = await apiClient.post('/users/avatar', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       
-      // Update the user profile with the new avatar URL
       if (response.data.avatarUrl) {
         await updateUserProfile({ avatar: response.data.avatarUrl });
       }
@@ -110,6 +123,48 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Appearance</Text>
+        
+        {themeOptions.map((option) => (
+          <TouchableOpacity
+            key={option.value}
+            style={styles.themeOption}
+            onPress={() => setTheme(option.value)}
+          >
+            <Text style={styles.themeOptionText}>{option.label}</Text>
+            {theme === option.value && (
+              <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary }} />
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Accent Color</Text>
+        
+        {accentColors.map((color) => (
+          <TouchableOpacity
+            key={color.value}
+            style={styles.colorOption}
+            onPress={() => setAccentColor(color.value)}
+          >
+            <View
+              style={[
+                styles.colorPreview,
+                {
+                  backgroundColor: color.gradient[0],
+                },
+              ]}
+            />
+            <Text style={styles.colorOptionText}>{color.label}</Text>
+            {accentColor === color.value && (
+              <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: colors.primary }} />
+            )}
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account Information</Text>
         
         <View style={styles.infoItem}>
@@ -137,25 +192,6 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Settings</Text>
-        
-        <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingLabel}>Notifications</Text>
-          <Text style={styles.settingValue}>On</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingLabel}>Privacy</Text>
-          <Text style={styles.settingValue}>Manage</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.settingItem}>
-          <Text style={styles.settingLabel}>Theme</Text>
-          <Text style={styles.settingValue}>Light</Text>
-        </TouchableOpacity>
-      </View>
-
       <TouchableOpacity style={styles.dangerButton} onPress={handleSignOut}>
         <Text style={styles.dangerButtonText}>Sign Out</Text>
       </TouchableOpacity>
@@ -166,12 +202,13 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -184,7 +221,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontFamily: 'Inter-SemiBold',
-    color: '#1A1A1A',
+    color: colors.text,
   },
   logoutButton: {
     padding: 8,
@@ -192,15 +229,10 @@ const styles = StyleSheet.create({
   profileSection: {
     alignItems: 'center',
     paddingVertical: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.secondaryBackground,
     borderRadius: 16,
     marginHorizontal: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   avatarContainer: {
     position: 'relative',
@@ -210,7 +242,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -226,43 +258,70 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.primary,
     width: 32,
     height: 32,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#FFFFFF',
+    borderColor: colors.background,
   },
   userName: {
     fontSize: 24,
     fontFamily: 'Inter-SemiBold',
-    color: '#1A1A1A',
+    color: colors.text,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#8E8E93',
+    color: colors.secondaryText,
   },
   section: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.secondaryBackground,
     borderRadius: 16,
     marginHorizontal: 16,
     marginBottom: 16,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#1A1A1A',
+    color: colors.text,
     marginBottom: 16,
+  },
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  themeOptionText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: colors.text,
+    flex: 1,
+  },
+  colorOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  colorPreview: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    marginRight: 12,
+  },
+  colorOptionText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: colors.text,
+    flex: 1,
   },
   infoItem: {
     flexDirection: 'row',
@@ -270,12 +329,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
+    borderBottomColor: colors.border,
   },
   infoLabel: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#8E8E93',
+    color: colors.secondaryText,
   },
   infoValueContainer: {
     flexDirection: 'row',
@@ -284,39 +343,16 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
-    color: '#1A1A1A',
+    color: colors.text,
     marginRight: 8,
   },
-  settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
-  },
-  settingLabel: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#1A1A1A',
-  },
-  settingValue: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#8E8E93',
-  },
   dangerButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.secondaryBackground,
     marginHorizontal: 16,
     marginBottom: 32,
     padding: 16,
     borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   dangerButtonText: {
     fontSize: 16,
