@@ -1,4 +1,5 @@
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ContactItemProps {
   name: string;
@@ -8,6 +9,53 @@ interface ContactItemProps {
 }
 
 export function ContactItem({ name, email, avatar, onPress }: ContactItemProps) {
+  const { colors } = useTheme();
+  
+  const styles = StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    avatar: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      marginRight: 16,
+    },
+    avatarPlaceholder: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: colors.secondaryBackground,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 16,
+    },
+    avatarInitial: {
+      fontSize: 20,
+      fontFamily: 'Inter-SemiBold',
+      color: colors.secondaryText,
+    },
+    infoContainer: {
+      flex: 1,
+    },
+    name: {
+      fontSize: 16,
+      fontFamily: 'Inter-Medium',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    email: {
+      fontSize: 14,
+      fontFamily: 'Inter-Regular',
+      color: colors.secondaryText,
+    },
+  });
+
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       {avatar ? (
@@ -25,47 +73,3 @@ export function ContactItem({ name, email, avatar, onPress }: ContactItemProps) 
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F2',
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    marginRight: 16,
-  },
-  avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#E1E1E1',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  avatarInitial: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: '#8E8E93',
-  },
-  infoContainer: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#1A1A1A',
-    marginBottom: 4,
-  },
-  email: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#8E8E93',
-  },
-});

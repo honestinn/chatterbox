@@ -50,7 +50,7 @@ const createStyles = (colors: any, accentColor: string, isDark: boolean) => Styl
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: colors.accent[accentColor][0],
+    backgroundColor: colors.messageBubble.sent.background,
     borderWidth: 2,
     borderColor: colors.background,
   },
@@ -92,7 +92,7 @@ const createStyles = (colors: any, accentColor: string, isDark: boolean) => Styl
     color: colors.text,
   },
   indicator: {
-    backgroundColor: isDark ? colors.accent[accentColor][0] + '20' : colors.accent[accentColor][0] + '15',
+    backgroundColor: isDark ? colors.messageBubble.sent.background + '20' : colors.messageBubble.sent.background + '15',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 12,
@@ -101,7 +101,7 @@ const createStyles = (colors: any, accentColor: string, isDark: boolean) => Styl
   indicatorText: {
     fontSize: 10,
     fontFamily: 'Inter-Medium',
-    color: colors.accent[accentColor][0],
+    color: colors.messageBubble.sent.background,
   },
 });
 

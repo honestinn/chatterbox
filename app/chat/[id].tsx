@@ -18,6 +18,7 @@ import { apiClient } from '@/services/apiClient';
 import { useAuth } from '@/context/AuthContext';
 import { io } from 'socket.io-client';
 import { API_URL } from '@/constants/Api';
+import { useTheme } from '@/context/ThemeContext';
 
 interface Message {
   _id: string;
@@ -44,6 +45,7 @@ export default function ChatScreen() {
   const { id } = useLocalSearchParams();
   const { user } = useAuth();
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -58,42 +60,34 @@ export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Get other participant in conversation
   const otherParticipant = conversation?.participants.find(
     p => p._id !== user?._id
   );
   
   useEffect(() => {
-    // Connect to socket server
     socket.current = io(API_URL);
     
-    // Join conversation room
     if (id) {
       socket.current.emit('join', id);
     }
     
-    // Listen for incoming messages
     socket.current.on('message', (message: Message) => {
       setMessages(prev => [...prev, message]);
       
-      // Mark messages as read if we're in this conversation
       if (message.sender !== user?._id) {
         markMessagesAsRead();
       }
     });
     
-    // Listen for typing indicators
     socket.current.on('typing', (data: { user: string; isTyping: boolean }) => {
       if (data.user !== user?._id) {
         setPartnerIsTyping(data.isTyping);
       }
     });
     
-    // Fetch conversation details and messages
     fetchConversationData();
     
     return () => {
-      // Leave conversation room and disconnect socket
       if (id) {
         socket.current.emit('leave', id);
       }
@@ -101,7 +95,6 @@ export default function ChatScreen() {
     };
   }, [id]);
   
-  // Scroll to bottom when new messages arrive
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
@@ -110,7 +103,6 @@ export default function ChatScreen() {
     }
   }, [messages]);
   
-  // Mark messages as read when entering the chat
   useEffect(() => {
     if (messages.length > 0) {
       markMessagesAsRead();
@@ -122,15 +114,12 @@ export default function ChatScreen() {
       setLoading(true);
       setError(null);
       
-      // Fetch conversation details
       const conversationResponse = await apiClient.get(`/conversations/${id}`);
       setConversation(conversationResponse.data);
       
-      // Fetch messages
       const messagesResponse = await apiClient.get(`/conversations/${id}/messages`);
       setMessages(messagesResponse.data);
       
-      // Mark messages as read
       markMessagesAsRead();
     } catch (err) {
       console.error('Error fetching conversation data:', err);
@@ -154,16 +143,11 @@ export default function ChatScreen() {
     try {
       setSendingMessage(true);
       
-      // Send message to API - don't add to state here
       await apiClient.post(`/conversations/${id}/messages`, {
         text: newMessage.trim()
       });
       
-      // Clear input immediately for better UX
       setNewMessage('');
-      
-      // The message will be added to state via socket listener
-      // No need to manually add it here
       
     } catch (err) {
       console.error('Error sending message:', err);
@@ -176,7 +160,6 @@ export default function ChatScreen() {
   const handleTyping = (text: string) => {
     setNewMessage(text);
     
-    // Send typing indicator
     if (!isTyping) {
       setIsTyping(true);
       socket.current?.emit('typing', {
@@ -186,12 +169,10 @@ export default function ChatScreen() {
       });
     }
     
-    // Clear previous timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
     
-    // Set new timeout
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
       socket.current?.emit('typing', {
@@ -245,7 +226,7 @@ export default function ChatScreen() {
       >
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <ArrowLeft size={24} color="#1A1A1A" />
+            <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
           
           <View style={styles.headerInfo}>
@@ -272,7 +253,7 @@ export default function ChatScreen() {
         
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
@@ -304,6 +285,7 @@ export default function ChatScreen() {
           <TextInput
             style={styles.input}
             placeholder="Type a message..."
+            placeholderTextColor={colors.secondaryText}
             value={newMessage}
             onChangeText={handleTyping}
             multiline
@@ -317,9 +299,9 @@ export default function ChatScreen() {
             disabled={!newMessage.trim() || sendingMessage}
           >
             {sendingMessage ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <ActivityIndicator size="small\" color={colors.messageBubble.sent.text} />
             ) : (
-              <Send size={20} color="#FFFFFF" />
+              <Send size={20} color={colors.messageBubble.sent.text} />
             )}
           </TouchableOpacity>
         </View>
@@ -331,10 +313,11 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background,
   },
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -342,8 +325,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F2F7',
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
   },
   backButton: {
     padding: 8,
@@ -363,7 +346,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E1E1E1',
+    backgroundColor: colors.secondaryBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -371,27 +354,28 @@ const styles = StyleSheet.create({
   avatarInitial: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#8E8E93',
+    color: colors.secondaryText,
   },
   headerName: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#1A1A1A',
+    color: colors.text,
   },
   headerSubtitle: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-    color: '#8E8E93',
+    color: colors.secondaryText,
   },
   typingIndicator: {
     fontSize: 12,
     fontFamily: 'Inter-Regular',
-    color: '#007AFF',
+    color: colors.primary,
     fontStyle: 'italic',
   },
   messagesContainer: {
     flexGrow: 1,
     padding: 16,
+    backgroundColor: colors.background,
   },
   messageContainer: {
     marginBottom: 8,
@@ -409,11 +393,11 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   ownMessageBubble: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.messageBubble.sent.background,
     borderBottomRightRadius: 4,
   },
   otherMessageBubble: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.messageBubble.received.background,
     borderBottomLeftRadius: 4,
   },
   messageText: {
@@ -422,26 +406,25 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
   },
   ownMessageText: {
-    color: '#FFFFFF',
+    color: colors.messageBubble.sent.text,
   },
   otherMessageText: {
-    color: '#1A1A1A',
+    color: colors.messageBubble.received.text,
   },
   messageTime: {
     fontSize: 10,
     marginTop: 4,
     fontFamily: 'Inter-Regular',
+    color: colors.secondaryText,
   },
   ownMessageTime: {
-    color: '#8E8E93',
     alignSelf: 'flex-end',
   },
   otherMessageTime: {
-    color: '#8E8E93',
     alignSelf: 'flex-start',
   },
   readStatus: {
-    color: '#8E8E93',
+    color: colors.secondaryText,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -449,21 +432,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F2F2F7',
-    backgroundColor: '#FFFFFF',
+    borderTopColor: colors.border,
+    backgroundColor: colors.background,
   },
   input: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: colors.secondaryBackground,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
     maxHeight: 100,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
+    color: colors.text,
   },
   sendButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.messageBubble.sent.background,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -472,18 +456,20 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   sendButtonDisabled: {
-    backgroundColor: '#B8B8B8',
+    backgroundColor: colors.secondaryText,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.background,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
+    backgroundColor: colors.background,
   },
   errorText: {
     fontSize: 16,
@@ -495,11 +481,11 @@ const styles = StyleSheet.create({
   retryButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
-    backgroundColor: '#007AFF',
+    backgroundColor: colors.messageBubble.sent.background,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: colors.messageBubble.sent.text,
     fontFamily: 'Inter-Medium',
     fontSize: 16,
   },
@@ -508,17 +494,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: 80,
+    backgroundColor: colors.background,
   },
   emptyTitle: {
     fontSize: 20,
     fontFamily: 'Inter-SemiBold',
-    color: '#1A1A1A',
+    color: colors.text,
     marginTop: 16,
   },
   emptySubtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#8E8E93',
+    color: colors.secondaryText,
     marginTop: 8,
   },
 });
