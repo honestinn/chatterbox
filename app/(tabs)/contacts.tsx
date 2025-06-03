@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Search, UserPlus } from 'lucide-react-native';
 import { apiClient } from '@/services/apiClient';
 import { ContactItem } from '@/components/ContactItem';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 
 interface User {
   _id: string;
@@ -21,6 +22,100 @@ export default function ContactsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const { user } = useAuth();
+  const { colors } = useTheme();
+
+  const styles = useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingTop: 60,
+      paddingBottom: 16,
+      backgroundColor: colors.background,
+    },
+    title: {
+      fontSize: 28,
+      fontFamily: 'Inter-SemiBold',
+      color: colors.text,
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.secondaryBackground,
+      borderRadius: 10,
+      marginHorizontal: 16,
+      marginBottom: 16,
+      paddingHorizontal: 12,
+      height: 40,
+    },
+    searchIcon: {
+      marginRight: 8,
+    },
+    searchInput: {
+      flex: 1,
+      height: 40,
+      fontSize: 16,
+      fontFamily: 'Inter-Regular',
+      color: colors.text,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      backgroundColor: colors.background,
+    },
+    errorText: {
+      fontSize: 16,
+      fontFamily: 'Inter-Regular',
+      color: '#FF3B30',
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    retryButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      backgroundColor: colors.messageBubble.sent.background,
+      borderRadius: 8,
+    },
+    retryButtonText: {
+      color: colors.messageBubble.sent.text,
+      fontFamily: 'Inter-Medium',
+      fontSize: 16,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingTop: 80,
+      paddingHorizontal: 24,
+      backgroundColor: colors.background,
+    },
+    emptyTitle: {
+      fontSize: 20,
+      fontFamily: 'Inter-SemiBold',
+      color: colors.text,
+      marginTop: 16,
+    },
+    emptySubtitle: {
+      fontSize: 16,
+      fontFamily: 'Inter-Regular',
+      color: colors.secondaryText,
+      marginTop: 8,
+      textAlign: 'center',
+    },
+  }), [colors]);
 
   useEffect(() => {
     fetchContacts();
@@ -75,10 +170,11 @@ export default function ContactsScreen() {
       </View>
 
       <View style={styles.searchContainer}>
-        <Search size={20} color="#8E8E93" style={styles.searchIcon} />
+        <Search size={20} color={colors.secondaryText} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Search contacts"
+          placeholderTextColor={colors.secondaryText}
           value={searchQuery}
           onChangeText={setSearchQuery}
           clearButtonMode="while-editing"
@@ -87,7 +183,7 @@ export default function ContactsScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
@@ -113,7 +209,7 @@ export default function ContactsScreen() {
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <UserPlus size={56} color="#C7C7CC" />
+              <UserPlus size={56} color={colors.secondaryText} />
               <Text style={styles.emptyTitle}>No contacts found</Text>
               <Text style={styles.emptySubtitle}>
                 {searchQuery ? 'Try a different search term' : 'Your contacts will appear here'}
@@ -125,91 +221,3 @@ export default function ContactsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 60,
-    paddingBottom: 16,
-  },
-  title: {
-    fontSize: 28,
-    fontFamily: 'Inter-SemiBold',
-    color: '#1A1A1A',
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F2F2F7',
-    borderRadius: 10,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    paddingHorizontal: 12,
-    height: 40,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  errorText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#FF3B30',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  retryButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontFamily: 'Inter-Medium',
-    fontSize: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 80,
-    paddingHorizontal: 24,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: '#1A1A1A',
-    marginTop: 16,
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#8E8E93',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-});
