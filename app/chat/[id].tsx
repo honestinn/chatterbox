@@ -499,7 +499,7 @@ export default function ChatScreen() {
             disabled={!newMessage.trim() || sendingMessage}
           >
             {sendingMessage ? (
-              <ActivityIndicator size="small" color={colors.messageBubble.sent.text} />
+              <ActivityIndicator size="small\" color={colors.messageBubble.sent.text} />
             ) : (
               <Send size={20} color={colors.messageBubble.sent.text} />
             )}
