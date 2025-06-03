@@ -20,6 +20,16 @@ export const lightColors = {
   text: '#1A1A1A',
   secondaryText: '#8E8E93',
   border: '#E1E1E1',
+  messageBubble: {
+    sent: {
+      background: '#007AFF',
+      text: '#FFFFFF'
+    },
+    received: {
+      background: '#F2F2F7',
+      text: '#1A1A1A'
+    }
+  },
   accent: {
     blue: ['#007AFF', '#47A3FF'],
     purple: ['#8E44AD', '#9B59B6'],
@@ -36,6 +46,16 @@ export const darkColors = {
   text: '#FFFFFF',
   secondaryText: '#8E8E93',
   border: '#38383A',
+  messageBubble: {
+    sent: {
+      background: '#0A84FF',
+      text: '#FFFFFF'
+    },
+    received: {
+      background: '#2C2C2E',
+      text: '#FFFFFF'
+    }
+  },
   accent: {
     blue: ['#0A84FF', '#5856D6'],
     purple: ['#BF5AF2', '#D8B4FE'],
@@ -64,6 +84,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     : theme === 'dark';
 
   const colors = isDark ? darkColors : lightColors;
+
+  // Update message bubble colors based on accent color
+  colors.messageBubble.sent.background = colors.accent[accentColor][0];
 
   return (
     <ThemeContext.Provider value={{
