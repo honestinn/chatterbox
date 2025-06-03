@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -63,6 +63,206 @@ export default function ChatScreen() {
   const otherParticipant = conversation?.participants.find(
     p => p._id !== user?._id
   );
+
+  const styles = useMemo(() => StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    backButton: {
+      padding: 8,
+      marginRight: 8,
+    },
+    headerInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    avatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      marginRight: 12,
+    },
+    avatarPlaceholder: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.secondaryBackground,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    avatarInitial: {
+      fontSize: 18,
+      fontFamily: 'Inter-SemiBold',
+      color: colors.secondaryText,
+    },
+    headerName: {
+      fontSize: 16,
+      fontFamily: 'Inter-SemiBold',
+      color: colors.text,
+    },
+    headerSubtitle: {
+      fontSize: 12,
+      fontFamily: 'Inter-Regular',
+      color: colors.secondaryText,
+    },
+    typingIndicator: {
+      fontSize: 12,
+      fontFamily: 'Inter-Regular',
+      color: colors.primary,
+      fontStyle: 'italic',
+    },
+    messagesContainer: {
+      flexGrow: 1,
+      padding: 16,
+      backgroundColor: colors.background,
+    },
+    messageContainer: {
+      marginBottom: 8,
+      maxWidth: '80%',
+    },
+    ownMessageContainer: {
+      alignSelf: 'flex-end',
+    },
+    otherMessageContainer: {
+      alignSelf: 'flex-start',
+    },
+    messageBubble: {
+      borderRadius: 16,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+    },
+    ownMessageBubble: {
+      backgroundColor: colors.messageBubble.sent.background,
+      borderBottomRightRadius: 4,
+    },
+    otherMessageBubble: {
+      backgroundColor: colors.messageBubble.received.background,
+      borderBottomLeftRadius: 4,
+    },
+    messageText: {
+      fontSize: 16,
+      lineHeight: 22,
+      fontFamily: 'Inter-Regular',
+    },
+    ownMessageText: {
+      color: colors.messageBubble.sent.text,
+    },
+    otherMessageText: {
+      color: colors.messageBubble.received.text,
+    },
+    messageTime: {
+      fontSize: 10,
+      marginTop: 4,
+      fontFamily: 'Inter-Regular',
+      color: colors.secondaryText,
+    },
+    ownMessageTime: {
+      alignSelf: 'flex-end',
+    },
+    otherMessageTime: {
+      alignSelf: 'flex-start',
+    },
+    readStatus: {
+      color: colors.secondaryText,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    input: {
+      flex: 1,
+      backgroundColor: colors.secondaryBackground,
+      borderRadius: 20,
+      paddingHorizontal: 16,
+      paddingVertical: 8,
+      maxHeight: 100,
+      fontSize: 16,
+      fontFamily: 'Inter-Regular',
+      color: colors.text,
+    },
+    sendButton: {
+      backgroundColor: colors.messageBubble.sent.background,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginLeft: 8,
+    },
+    sendButtonDisabled: {
+      backgroundColor: colors.secondaryText,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 24,
+      backgroundColor: colors.background,
+    },
+    errorText: {
+      fontSize: 16,
+      fontFamily: 'Inter-Regular',
+      color: '#FF3B30',
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+    retryButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      backgroundColor: colors.messageBubble.sent.background,
+      borderRadius: 8,
+    },
+    retryButtonText: {
+      color: colors.messageBubble.sent.text,
+      fontFamily: 'Inter-Medium',
+      fontSize: 16,
+    },
+    emptyContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingTop: 80,
+      backgroundColor: colors.background,
+    },
+    emptyTitle: {
+      fontSize: 20,
+      fontFamily: 'Inter-SemiBold',
+      color: colors.text,
+      marginTop: 16,
+    },
+    emptySubtitle: {
+      fontSize: 16,
+      fontFamily: 'Inter-Regular',
+      color: colors.secondaryText,
+      marginTop: 8,
+    },
+  }), [colors]);
   
   useEffect(() => {
     socket.current = io(API_URL);
@@ -299,7 +499,7 @@ export default function ChatScreen() {
             disabled={!newMessage.trim() || sendingMessage}
           >
             {sendingMessage ? (
-              <ActivityIndicator size="small\" color={colors.messageBubble.sent.text} />
+              <ActivityIndicator size="small" color={colors.messageBubble.sent.text} />
             ) : (
               <Send size={20} color={colors.messageBubble.sent.text} />
             )}
@@ -309,203 +509,3 @@ export default function ChatScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.background,
-  },
-  backButton: {
-    padding: 8,
-    marginRight: 8,
-  },
-  headerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  avatarPlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.secondaryBackground,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  avatarInitial: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: colors.secondaryText,
-  },
-  headerName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: colors.text,
-  },
-  headerSubtitle: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: colors.secondaryText,
-  },
-  typingIndicator: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: colors.primary,
-    fontStyle: 'italic',
-  },
-  messagesContainer: {
-    flexGrow: 1,
-    padding: 16,
-    backgroundColor: colors.background,
-  },
-  messageContainer: {
-    marginBottom: 8,
-    maxWidth: '80%',
-  },
-  ownMessageContainer: {
-    alignSelf: 'flex-end',
-  },
-  otherMessageContainer: {
-    alignSelf: 'flex-start',
-  },
-  messageBubble: {
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  ownMessageBubble: {
-    backgroundColor: colors.messageBubble.sent.background,
-    borderBottomRightRadius: 4,
-  },
-  otherMessageBubble: {
-    backgroundColor: colors.messageBubble.received.background,
-    borderBottomLeftRadius: 4,
-  },
-  messageText: {
-    fontSize: 16,
-    lineHeight: 22,
-    fontFamily: 'Inter-Regular',
-  },
-  ownMessageText: {
-    color: colors.messageBubble.sent.text,
-  },
-  otherMessageText: {
-    color: colors.messageBubble.received.text,
-  },
-  messageTime: {
-    fontSize: 10,
-    marginTop: 4,
-    fontFamily: 'Inter-Regular',
-    color: colors.secondaryText,
-  },
-  ownMessageTime: {
-    alignSelf: 'flex-end',
-  },
-  otherMessageTime: {
-    alignSelf: 'flex-start',
-  },
-  readStatus: {
-    color: colors.secondaryText,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.background,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: colors.secondaryBackground,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    maxHeight: 100,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: colors.text,
-  },
-  sendButton: {
-    backgroundColor: colors.messageBubble.sent.background,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  sendButtonDisabled: {
-    backgroundColor: colors.secondaryText,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    backgroundColor: colors.background,
-  },
-  errorText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#FF3B30',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  retryButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: colors.messageBubble.sent.background,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: colors.messageBubble.sent.text,
-    fontFamily: 'Inter-Medium',
-    fontSize: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 80,
-    backgroundColor: colors.background,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: colors.text,
-    marginTop: 16,
-  },
-  emptySubtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: colors.secondaryText,
-    marginTop: 8,
-  },
-});
